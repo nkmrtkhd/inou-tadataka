@@ -255,9 +255,11 @@ public class Tadataka implements ActionListener{
       }else{
       g.setColor(Color.red);
       int r=2;
+      double dy=(ymax-ymin);
+      double dx=(xmax-xmin);
       for(int i=0;i<pos.size()/2;i++){
-        int x=(int)((pos.get(2*i)-xmin)*width/(xmax-xmin))+10;
-        int y=h-(int)((pos.get(2*i+1)-ymin)*height/(ymax-ymin))-10;
+        int x=(int)((pos.get(2*i)-xmin)*width/dx)+10;
+        int y=h-(int)((pos.get(2*i+1)-ymin)*height/dy*dx/dy)-10;
         g.fill3DRect(x,y,r,r,false);
       }
       }
