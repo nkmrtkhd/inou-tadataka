@@ -130,8 +130,8 @@ public class Tadataka implements ActionListener{
         }
       }
       if(y1==1e10 || y2==-1e10){
-        System.out.println("error!!!!");
-        System.exit(1);
+        myecho("CANNOT CALCULATE because of too large grid!!");
+        return;
       }
 
       //cal area 1
@@ -183,9 +183,9 @@ public class Tadataka implements ActionListener{
     calButton.setFocusable(false);
 
     JLabel lgrid = new JLabel( "Grid" );
-    spGrid = new JSpinner(new SpinnerNumberModel(200, 1, null, 100));
+    spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 100));
     spGrid.setFocusable(false);
-    spGrid.setPreferredSize(new Dimension(55, 25));
+    spGrid.setPreferredSize(new Dimension(80, 28));
     // outout area
     outArea = new JTextArea();
     outArea.setEditable(false);
