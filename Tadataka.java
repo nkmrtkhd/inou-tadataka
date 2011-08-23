@@ -18,8 +18,8 @@ public class Tadataka implements ActionListener{
   private JButton openButton;
   private JButton calButton;
 
-  ArrayList<Float> pos= new ArrayList<Float>();
-  float xmin,xmax,ymin,ymax;
+  ArrayList<Double> pos= new ArrayList<Double>();
+  double xmin,xmax,ymin,ymax;
 
   //main function
   public static void main(String[] args){
@@ -71,7 +71,7 @@ public class Tadataka implements ActionListener{
       String[] elem;
       Tokens tokens = new Tokens();
       Exponent epnum = new Exponent();
-      float tmp;
+      double tmp;
       xmin=100;
       xmax=-100;
       ymin=100;
@@ -84,19 +84,22 @@ public class Tadataka implements ActionListener{
 
         //x
         epnum.setString( elem[0] );
-        tmp=(float)(epnum.getNumber());
+        tmp=epnum.getNumber();
         pos.add(tmp);
         if(tmp<xmin)xmin=tmp;
         if(tmp>xmax)xmax=tmp;
         //y
         epnum.setString( elem[1] );
-        tmp=(float)(epnum.getNumber());
+        tmp=epnum.getNumber();
         pos.add(tmp);
         if(tmp<ymin)ymin=tmp;
         if(tmp>ymax)ymax=tmp;
       }
 
+      myecho("---------------");
       myecho(String.format("loaded file: %s",filename));
+      myecho(String.format("xmin= %.4e, xmax= %.4e",xmin,xmax));
+      myecho(String.format("ymin= %.4e, ymax= %.4e",ymin,ymax));
 
     }catch (Exception e) {
     }
@@ -124,7 +127,7 @@ public class Tadataka implements ActionListener{
       double y2=-1e10;
       for(int i=0;i<pos.size()/2;i++){
         if(Math.abs(x-pos.get(2*i))<=dx){
-          float tmp=pos.get(2*i+1);
+          double tmp=pos.get(2*i+1);
           if(tmp<y1)y1=tmp;
           if(tmp>y2)y2=tmp;
         }
@@ -144,9 +147,7 @@ public class Tadataka implements ActionListener{
     }//ix
 
 
-    myecho("---------------");
-    myecho(String.format("xmin= %f, xmax= %f",xmin,xmax));
-    myecho(String.format("ymin= %f, ymax= %f",ymin,ymax));
+    myecho("---");
     myecho(String.format("divided into %dx%d, unit are=%f",ng,ng,dx*dy));
     myecho(String.format("estimate area: %f",dx*dy*inc));
   }
@@ -259,7 +260,7 @@ public class Tadataka implements ActionListener{
       double dx=(xmax-xmin);
       for(int i=0;i<pos.size()/2;i++){
         int x=(int)((pos.get(2*i)-xmin)*width/dx)+10;
-        int y=h-(int)((pos.get(2*i+1)-ymin)*height/dy*dx/dy)-10;
+        int y=h-(int)((pos.get(2*i+1)-ymin)*height/dy)-10;
         g.fill3DRect(x,y,r,r,false);
       }
       }
