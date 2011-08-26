@@ -96,20 +96,23 @@ public class Tadataka implements ActionListener{
         if(tmp>ymax)ymax=tmp;
       }
 
-      myecho("---------------");
-      myecho(String.format("loaded file: %s",filename));
-      myecho(String.format("xmin= %.4e, xmax= %.4e",xmin,xmax));
-      myecho(String.format("ymin= %.4e, ymax= %.4e",ymin,ymax));
+      myecho("");
+      myecho("-- FILE --");
+      myecho(String.format("Loaded file: %s",filename));
+      myecho(String.format("(xmin, xmax)= (%.5e, %.5e)",xmin,xmax));
+      myecho(String.format("(ymin, ymax)= (%.5e, %.5e)",ymin,ymax));
 
+      outer.clear();
     }catch (Exception e) {
     }
     myCanv.repaint();
-
   }
+
   private void myecho(String str){
     outArea.append(String.format("%s \n",str));
     outArea.setCaretPosition(outArea.getText().length());
   }
+
   private void convexHull(){
     ArrayList<Integer> q= new ArrayList<Integer>();
     q.add(0);
@@ -169,7 +172,7 @@ public class Tadataka implements ActionListener{
     int ng=((Integer)spGrid.getValue()).intValue();
     double dx=(xmax-xmin)/(double)ng;
     double dy=(ymax-ymin)/(double)ng;
-    int[][] grid=new int[ng][ng];
+    int[][] grid=new int[ng+1][ng+1];
 
     //init
     for(int i=0;i<ng;i++)for(int j=0;j<ng;j++)grid[i][j]=0;
@@ -181,116 +184,129 @@ public class Tadataka implements ActionListener{
       double ex2=outer.get(2*i+2);
       double ey2=outer.get(2*i+3);
 
-      int gxs=(int)((ex1-xmin)/dx);
-      int gxe=(int)((ex2-xmin)/dx);
-      if(gxs<0){
-        System.out.println("negative gxs");
-        gxs=0;
+      int nx1=(int)((ex1-xmin)/dx);
+      int nx2=(int)((ex2-xmin)/dx);
+      if(nx1<0){
+        System.out.println(String.format("nx1 %d<0 at %d",nx1,i));
+        nx1=0;
       }
-      if(gxs>=ng){
-        System.out.println("too big gxs");
-        gxs=ng-1;
+      if(nx1>ng){
+        System.out.println(String.format("nx1 %d>ng at %d",nx1,i));
+        nx1=ng-1;
       }
-      if(gxe<0){
-        System.out.println("negative gxe");
-        gxe=0;
+      if(nx2<0){
+        System.out.println(String.format("nx1 %d<0 at %d",nx2,i));
+        nx2=0;
       }
-      if(gxe>=ng){
-        System.out.println("too big gxe");
-        gxe=ng-1;
+      if(nx2>ng){
+        System.out.println(String.format("nx1 %d>ng at %d",nx2,i));
+        nx2=ng-1;
       }
 
-      //
-      if(gxs==gxe){
-        int gys=(int)((ey1-ymin)/dy);
-        int gye=(int)((ey2-ymin)/dy);
-        if(gys<0){
-          System.out.println("negative gys");
-          gys=0;
+      //set grid[][]
+      if(nx1==nx2){
+        int ny1=(int)((ey1-ymin)/dy);
+        int ny2=(int)((ey2-ymin)/dy);
+        if(ny1<0){
+          System.out.println(String.format("ny1 %d<0 at %d",ny1,i));
+          ny1=0;
         }
-        if(gys>=ng){
-          System.out.println("too big gys");
-          gys=ng-1;
+        if(ny1>ng){
+          System.out.println(String.format("ny1 %d>ng at %d",ny1,i));
+          ny1=ng-1;
         }
-        if(gye<0){
-          System.out.println("negative gye");
-          gye=0;
+        if(ny2<0){
+          System.out.println(String.format("ny1 %d<0 at %d",ny2,i));
+          ny2=0;
         }
-        if(gye>=ng){
-          System.out.println("too big gye");
-          gye=ng-1;
+        if(ny2>ng){
+          System.out.println(String.format("ny1 %d>ng at %d",ny2,i));
+          ny2=ng-1;
         }
 
-        if(gys<gye)
-          for(int igy=gys;igy<=gye;igy++)grid[gxs][igy]=1;
+        if(ny1<ny2)
+          for(int igy=ny1;igy<=ny2;igy++)grid[nx1][igy]=1;
         else
-          for(int igy=gye;igy<=gys;igy++)grid[gxs][igy]=1;
+          for(int igy=ny2;igy<=ny1;igy++)grid[nx1][igy]=1;
 
-      }else if(gxs<gxe){
-        for(int igx=gxs;igx<=gxe;igx++){
+      }else if(ex1<ex2){
+        for(int igx=nx1;igx<=nx2;igx++){
           double x=dx*igx+xmin;
           if(ex1<=x && x<=ex2){
             double y=(ey2-ey1)/(ex2-ex1)*(x-ex1)+ey1-ymin;
             int igy=(int)(y/dy);
             if(igy<0){
-              System.out.println("too small igy");
+              System.out.println(String.format("igy %d<0 at %d",igy,i));
               igy=0;
             }
-            if(igy>=ng){
-              System.out.println("too big igy");
+            if(igy>ng){
+              System.out.println(String.format("igy %d>ng at %d",igy,i));
               igy=ng-1;
             }
             grid[igx][igy]=1;
           }else{
-            System.out.println(String.format("out of range at %d",igx));
-            continue;
+            /*
+             * System.out.println(String.format("out of range at %d",igx));
+             * System.out.println(String.format("  %d to %d",nx1,nx2));
+             * System.out.println(String.format("   %e < %e < %e",ex1,x,ex2));
+             * System.out.println(String.format("   %e, %d, %e",dx,igx,xmin));
+             */
           }
         }
       }else{
-        for(int igx=gxe;igx<=gxs;igx++){
+        for(int igx=nx2;igx<=nx1;igx++){
           double x=dx*igx+xmin;
           if(ex2<=x && x<=ex1){
             double y=(ey2-ey1)/(ex2-ex1)*(x-ex1)+ey1-ymin;
             int igy=(int)(y/dy);
             if(igy<0){
-              System.out.println("too small igy");
+              System.out.println(String.format("igy %d<0 at %d",igy,i));
               igy=0;
             }
-            if(igy>=ng){
-              System.out.println("too big igy");
+            if(igy>ng){
+              System.out.println(String.format("igy %d>ng at %d",igy,i));
               igy=ng-1;
             }
             grid[igx][igy]=1;
           }else{
-            System.out.println("emergency");
-            continue;
+            /*
+             * System.out.println(String.format("out of range at %d",igx));
+             * System.out.println(String.format("  %d to %d",nx2,nx1));
+             * System.out.println(String.format("  %e< %e< %e",ex2,x,ex1));
+             * System.out.println(String.format("   %e, %d, %e",dx,igx,xmin));
+             */
           }
         }
       }
     }//i
 
-    System.out.println("set grid done");
-    //
     /// count innter area
     int inc=0;
     for(int ix=0;ix<ng;ix++){
-      double x=xmin+dx*ix;
       //search y1,y2
-      int ymax=-2*ng;
-      int ymin=2*ng;
-      for(int iy=0;iy<ng;iy++){
+      int iymax=-2*ng;
+      int iymin=2*ng;
+      for(int iy=0;iy<=ng;iy++){
         if(grid[ix][iy]==1){
-          if(iy<ymin)ymin=iy;
-          if(iy>ymax)ymax=iy;
+          if(iy<iymin)iymin=iy;
+          if(iy>iymax)iymax=iy;
         }
       }
-      if(ymax==-2*ng || ymin==2*ng)System.out.println(String.format("error at %d",ix));
-      inc+=(ymax-ymin);
+      if(iymax==-2*ng || iymin==2*ng){
+        myecho("** WARNING **");
+        myecho(String.format("  error at %d",ix));
+        myecho("Send a mail to nkmrtkhd@gmail.com");
+        return;
+      }
+      inc+=(iymax-iymin);
     }//ix
 
-    myecho("---");
-    myecho(String.format("divided into %dx%d, unit are=%f",ng,ng,dx*dy));
-    myecho(String.format("estimate area: %f",dx*dy*inc));
+    myecho("-- RESULT --");
+    myecho(String.format("(Lx, Ly) =(%.3e, %.3e)",xmax-xmin,ymax-ymin));
+    myecho(String.format("  - generated mesh: %d x %d",ng,ng));
+    myecho(String.format("  - unit are=%.5e (=%.3e x %.3e)",dx*dy,dx,dy));
+    //myecho(String.format("estimate area: %.5e ±%.5e",dx*dy*inc,dx*dy));
+    myecho(String.format("estimate area: %.5e",dx*dy*inc));
   }
 
 
@@ -315,7 +331,7 @@ public class Tadataka implements ActionListener{
     //panel
     JPanel jp=new JPanel();
 
-    openButton=new JButton("open");
+    openButton=new JButton("Open");
     openButton.addActionListener( this );
     openButton.setFocusable(false);
     openButton.setActionCommand("open");
@@ -324,7 +340,7 @@ public class Tadataka implements ActionListener{
     calButton.addActionListener( this );
     calButton.setFocusable(false);
 
-    JLabel lgrid = new JLabel( "Grid" );
+    JLabel lgrid = new JLabel( "Grid Num." );
     spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 100));
     spGrid.setFocusable(false);
     spGrid.setPreferredSize(new Dimension(80, 28));
@@ -392,10 +408,7 @@ public class Tadataka implements ActionListener{
 
       g2.setStroke(new BasicStroke(1f)); //線の種類を設定
 
-      if(pos.size()==0){
-        g.drawLine(0,0,w/2,h/2);
-      }else{
-
+      if(pos.size()!=0){
         g.setColor(Color.red);
         int r=3;
         double dy=(ymax-ymin);
@@ -403,7 +416,7 @@ public class Tadataka implements ActionListener{
         for(int i=0;i<pos.size()/2;i++){
           int x=(int)((pos.get(2*i)-xmin)*width/dx)+10;
           int y=h-(int)((pos.get(2*i+1)-ymin)*height/dy)-10;
-          g.fill3DRect(x,y,r,r,false);
+          g.fill3DRect(x-r/2,y-r/2,r,r,false);
         }
       }
 
@@ -411,14 +424,15 @@ public class Tadataka implements ActionListener{
       int r=2;
       double dy=(ymax-ymin);
       double dx=(xmax-xmin);
-      for(int i=0;i<outer.size()/2;i++){
+      for(int i=0;i<outer.size()/2-1;i++){
         int x=(int)((outer.get(2*i)-xmin)*width/dx)+10;
         int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-10;
-        g.fill3DRect(x,y,r,r,false);
-      }
-
-
+        int x1=(int)((outer.get(2*i+2)-xmin)*width/dx)+10;
+        int y1=h-(int)((outer.get(2*i+3)-ymin)*height/dy)-10;
+        g.drawLine(x,y,x1,y1);
     }
+
+    }//paint
   }//end of mycanvas
 
 
