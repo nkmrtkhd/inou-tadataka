@@ -122,8 +122,9 @@ public class InouTadataka implements ActionListener{
   private void convexHull(){
     ArrayList<Integer> q= new ArrayList<Integer>();
     q.add(xminID);
+    //q.add(0);
     for(int ii=0;ii<pos.size()/2;ii++){
-      if(ii>q.size())break;
+      if(ii>=q.size())break;
 
       int i=q.get(ii);
       double xi=pos.get(2*i);
@@ -133,19 +134,24 @@ public class InouTadataka implements ActionListener{
         double xj=pos.get(2*j);
         double yj=pos.get(2*j+1);
 
-        for(int kk=1;kk<q.size();kk++){
-          int k=q.get(kk);
+        for(int k=0;k<pos.size()/2;k++){
           if(k==i || k==j)continue;
           double xk=pos.get(2*k);
           double yk=pos.get(2*k+1);
           double drcz=(xj-xi)*(yk-yi)-(yj-yi)*(xk-xi);//drcz= n_z * (rij x rik)_z
-          if(drcz<=0)continue jLoop;//もしもjikが右回りなら,そのjは無視
+          if(drcz<0)continue jLoop;//もしもjikが右回りなら,そのjは無視
         }//kk
 
         q.add(j);
+        break;
       }//j
     }//ii
 
+    myecho(String.format("q size: %d",q.size()));
+
+    if(q.size()<3){
+      myecho("Error at convex-hull");
+    }
     outer.clear();
     for(int ii=1;ii<q.size();ii++){
       int i=q.get(ii);
@@ -304,11 +310,14 @@ public class InouTadataka implements ActionListener{
       inc+=(iymax-iymin);
     }//ix
 
-    myecho("-- RESULT --");
+    if(cbConvexHull.isSelected()){
+      myecho("-- RESULT with convex-hull --");
+    }else{
+      myecho("-- RESULT --");
+    }
     myecho(String.format("(Lx, Ly) =(%.3e, %.3e)",xmax-xmin,ymax-ymin));
     myecho(String.format("  - generated mesh: %d x %d",ng,ng));
     myecho(String.format("  - unit are=%.5e (=%.3e x %.3e)",dx*dy,dx,dy));
-    if(cbConvexHull.isSelected())myecho("Used Convex-Hull");
     myecho(String.format("estimate area: %.5e",dx*dy*inc));
   }
 
@@ -343,11 +352,11 @@ public class InouTadataka implements ActionListener{
     calButton.addActionListener( this );
     calButton.setFocusable(false);
 
-    cbConvexHull =new JCheckBox("ConvexHull?",false);
+    cbConvexHull =new JCheckBox("Use convex-hull",false);
     cbConvexHull.setFocusable(false);
 
     JLabel lgrid = new JLabel( "Grid Num." );
-    spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 100));
+    spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 500));
     spGrid.setFocusable(false);
     spGrid.setPreferredSize(new Dimension(80, 28));
     // outout area
@@ -368,12 +377,8 @@ public class InouTadataka implements ActionListener{
     SpringLayout layout = new SpringLayout();
     jp.setLayout(layout);
 
-    JLabel logo=new JLabel(new ImageIcon(this.getClass().getResource("/img/icon32.png")));
-    layout.putConstraint( SpringLayout.NORTH,logo, 0,SpringLayout.NORTH, jp);
-    layout.putConstraint( SpringLayout.WEST,logo, 0,SpringLayout.WEST, jp);
-
     layout.putConstraint( SpringLayout.NORTH,openButton, 5,SpringLayout.NORTH, jp);
-    layout.putConstraint( SpringLayout.WEST,openButton, 5,SpringLayout.EAST, logo);
+    layout.putConstraint( SpringLayout.WEST,openButton, 5,SpringLayout.WEST,jp);
 
     layout.putConstraint( SpringLayout.NORTH,lgrid, 5,SpringLayout.NORTH, openButton);
     layout.putConstraint( SpringLayout.WEST,lgrid, 5,SpringLayout.EAST, openButton);
@@ -398,7 +403,6 @@ public class InouTadataka implements ActionListener{
     layout.putConstraint( SpringLayout.EAST,nkmr, -5,SpringLayout.EAST, jp);
 
     jp.add(cbConvexHull);
-    jp.add(logo);
     jp.add(nkmr);
     jp.add(openButton);
     jp.add(calButton);
