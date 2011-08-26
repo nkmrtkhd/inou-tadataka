@@ -367,10 +367,10 @@ public class Tadataka implements ActionListener{
     layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, openButton);
     layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, openButton);
 
-    layout.putConstraint( SpringLayout.NORTH,lgrid, 0,SpringLayout.NORTH, calButton);
+    layout.putConstraint( SpringLayout.NORTH,lgrid, 5,SpringLayout.NORTH, calButton);
     layout.putConstraint( SpringLayout.WEST,lgrid, 5,SpringLayout.EAST, calButton);
-    layout.putConstraint( SpringLayout.NORTH,spGrid, 0,SpringLayout.NORTH, lgrid);
-    layout.putConstraint( SpringLayout.WEST,spGrid, 5,SpringLayout.EAST, lgrid);
+    layout.putConstraint( SpringLayout.NORTH,spGrid, 5,SpringLayout.NORTH, jp);
+    layout.putConstraint( SpringLayout.WEST,spGrid, 2,SpringLayout.EAST, lgrid);
 
 
     layout.putConstraint( SpringLayout.NORTH,sp, 0,SpringLayout.SOUTH, openButton);
@@ -378,6 +378,12 @@ public class Tadataka implements ActionListener{
     layout.putConstraint( SpringLayout.NORTH,myCanv, 0,SpringLayout.SOUTH, sp);
     layout.putConstraint( SpringLayout.WEST,myCanv, 5,SpringLayout.WEST, jp);
 
+
+    JLabel nkmr=new JLabel("Made by nkmrtkhd");
+    layout.putConstraint( SpringLayout.NORTH,nkmr, 0,SpringLayout.NORTH, jp);
+    layout.putConstraint( SpringLayout.EAST,nkmr, -5,SpringLayout.EAST, jp);
+
+    jp.add(nkmr);
     jp.add(openButton);
     jp.add(calButton);
     jp.add(lgrid);
