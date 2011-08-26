@@ -17,13 +17,15 @@ public class InouTadataka implements ActionListener{
   //for GUI
   private JButton openButton;
   private JButton calButton;
-  JCheckBox cbConvexHull;
+  private JCheckBox cbConvexHull;
 
   ArrayList<Double> pos= new ArrayList<Double>();
   double xmin,xmax,ymin,ymax;
   int xminID=0;
+
   //main function
   public static void main(String[] args){
+
     if(args.length>0)
       new InouTadataka(args[0]);
     else
@@ -32,6 +34,7 @@ public class InouTadataka implements ActionListener{
 
   //constructor
   public InouTadataka(String inputFile){
+    setLookAndFeel();
     makeControlFrame();
     if(inputFile!=null)this.open(inputFile);
   }
@@ -122,10 +125,9 @@ public class InouTadataka implements ActionListener{
   private void convexHull(){
     ArrayList<Integer> q= new ArrayList<Integer>();
     q.add(xminID);
-    //q.add(0);
+
     for(int ii=0;ii<pos.size()/2;ii++){
       if(ii>=q.size())break;
-
       int i=q.get(ii);
       double xi=pos.get(2*i);
       double yi=pos.get(2*i+1);
@@ -147,11 +149,10 @@ public class InouTadataka implements ActionListener{
       }//j
     }//ii
 
-    myecho(String.format("q size: %d",q.size()));
+    //check
+    if(q.size()<3)myecho("Error at convex-hull");
 
-    if(q.size()<3){
-      myecho("Error at convex-hull");
-    }
+    //make outer
     outer.clear();
     for(int ii=1;ii<q.size();ii++){
       int i=q.get(ii);
@@ -333,6 +334,10 @@ public class InouTadataka implements ActionListener{
   private Color innerPanelColor=new Color(200,200,200);
   private void makeControlFrame(){
     ctrlJframe=new JFrame("伊能忠敬");
+    //frame.setIconImage(Toolkit.getDefaultToolkit().getImage("icon_confused.gif"));
+
+    ImageIcon icon = new ImageIcon(this.getClass().getResource("/img/icon32.png"));
+    ctrlJframe.setIconImage(icon.getImage());
     //window size
     Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
     ctrlJframe.setBounds( 0, 0,600,800);
@@ -414,6 +419,28 @@ public class InouTadataka implements ActionListener{
     ctrlJframe.add(jp);
     ctrlJframe.setVisible(true);
   }
+  private void setLookAndFeel(){
+    // Possible Look & Feels
+    String mac     = "com.sun.java.swing.plaf.mac.MacLookAndFeel";
+    String metal   = "javax.swing.plaf.metal.MetalLookAndFeel";
+    String motif   = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+    String windows = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+    String gtk     = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+    String nimbus  = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+    /*
+     * //show LF index
+     * UIManager.LookAndFeelInfo[] installedLafs = UIManager.getInstalledLookAndFeels();
+     * for(int i=0; i<installedLafs.length; i++){
+     *   UIManager.LookAndFeelInfo info=installedLafs[i];
+     *   System.out.println(info.getName());
+     * }
+     */
+    try{
+      UIManager.setLookAndFeel( nimbus );
+    }catch( Exception ex ){
+      //System.out.println(" Nimbus not available!!");
+    }
+  }
 
 
   /** private class for rendering image*/
@@ -432,24 +459,23 @@ public class InouTadataka implements ActionListener{
       g.setColor(new Color(200,200,255));
       g.fill3DRect(0,0,w,h,false);
 
-      g2.setStroke(new BasicStroke(1f)); //線の種類を設定
 
+      double dy=(ymax-ymin);
+      double dx=(xmax-xmin);
+
+      //draw data points
       if(pos.size()!=0){
         g.setColor(Color.red);
         int r=3;
-        double dy=(ymax-ymin);
-        double dx=(xmax-xmin);
         for(int i=0;i<pos.size()/2;i++){
           int x=(int)((pos.get(2*i)-xmin)*width/dx)+10;
           int y=h-(int)((pos.get(2*i+1)-ymin)*height/dy)-10;
           g.fill3DRect(x-r/2,y-r/2,r,r,false);
         }
       }
-
+      //draw outer line
       g.setColor(Color.black);
-      int r=5;
-      double dy=(ymax-ymin);
-      double dx=(xmax-xmin);
+      g2.setStroke(new BasicStroke(1f)); //線の種類を設定
       for(int i=0;i<outer.size()/2-1;i++){
         int x=(int)((outer.get(2*i)-xmin)*width/dx)+10;
         int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-10;
@@ -457,7 +483,9 @@ public class InouTadataka implements ActionListener{
         int y1=h-(int)((outer.get(2*i+3)-ymin)*height/dy)-10;
         g.drawLine(x,y,x1,y1);
       }
+      //draw outer points
       g.setColor(Color.blue);
+      int r=5;
       for(int i=0;i<outer.size()/2;i++){
         int x=(int)((outer.get(2*i)-xmin)*width/dx)+10;
         int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-10;
