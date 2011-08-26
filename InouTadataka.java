@@ -12,7 +12,7 @@ import javax.swing.border.*;
 import tools.*;
 
 
-public class Tadataka implements ActionListener{
+public class InouTadataka implements ActionListener{
 
   //for GUI
   private JButton openButton;
@@ -24,13 +24,13 @@ public class Tadataka implements ActionListener{
   //main function
   public static void main(String[] args){
     if(args.length>0)
-      new Tadataka(args[0]);
+      new InouTadataka(args[0]);
     else
-      new Tadataka(null);
+      new InouTadataka(null);
   }
 
   //constructor
-  public Tadataka(String inputFile){
+  public InouTadataka(String inputFile){
     makeControlFrame();
     if(inputFile!=null)this.open(inputFile);
   }
@@ -362,8 +362,12 @@ public class Tadataka implements ActionListener{
     SpringLayout layout = new SpringLayout();
     jp.setLayout(layout);
 
+    JLabel logo=new JLabel(new ImageIcon(this.getClass().getResource("/img/icon32.png")));
+    layout.putConstraint( SpringLayout.NORTH,logo, 0,SpringLayout.NORTH, jp);
+    layout.putConstraint( SpringLayout.WEST,logo, 0,SpringLayout.WEST, jp);
+
     layout.putConstraint( SpringLayout.NORTH,openButton, 5,SpringLayout.NORTH, jp);
-    layout.putConstraint( SpringLayout.WEST,openButton, 5,SpringLayout.WEST, jp);
+    layout.putConstraint( SpringLayout.WEST,openButton, 5,SpringLayout.EAST, logo);
     layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, openButton);
     layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, openButton);
 
@@ -379,10 +383,13 @@ public class Tadataka implements ActionListener{
     layout.putConstraint( SpringLayout.WEST,myCanv, 5,SpringLayout.WEST, jp);
 
 
+
     JLabel nkmr=new JLabel("Made by nkmrtkhd");
     layout.putConstraint( SpringLayout.NORTH,nkmr, 0,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.EAST,nkmr, -5,SpringLayout.EAST, jp);
 
+
+    jp.add(logo);
     jp.add(nkmr);
     jp.add(openButton);
     jp.add(calButton);
