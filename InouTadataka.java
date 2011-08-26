@@ -336,7 +336,7 @@ public class InouTadataka implements ActionListener{
     ctrlJframe=new JFrame("伊能忠敬");
     //frame.setIconImage(Toolkit.getDefaultToolkit().getImage("icon_confused.gif"));
 
-    ImageIcon icon = new ImageIcon(this.getClass().getResource("/img/icon32.png"));
+    ImageIcon icon = new ImageIcon(this.getClass().getResource("/img/icon128.png"));
     ctrlJframe.setIconImage(icon.getImage());
     //window size
     Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
