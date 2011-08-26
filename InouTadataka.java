@@ -17,10 +17,11 @@ public class InouTadataka implements ActionListener{
   //for GUI
   private JButton openButton;
   private JButton calButton;
+  JCheckBox cbConvexHull;
 
   ArrayList<Double> pos= new ArrayList<Double>();
   double xmin,xmax,ymin,ymax;
-
+  int xminID=0;
   //main function
   public static void main(String[] args){
     if(args.length>0)
@@ -78,6 +79,7 @@ public class InouTadataka implements ActionListener{
       ymax=-100;
 
       tokens.setDelim( " " );
+      int inc=0;
       while((line = br.readLine())!=null){
         tokens.setString( line );
         elem = tokens.getTokens();
@@ -86,7 +88,11 @@ public class InouTadataka implements ActionListener{
         epnum.setString( elem[0] );
         tmp=epnum.getNumber();
         pos.add(tmp);
-        if(tmp<xmin)xmin=tmp;
+        inc++;
+        if(tmp<xmin){
+          xmin=tmp;
+          xminID=inc;
+        }
         if(tmp>xmax)xmax=tmp;
         //y
         epnum.setString( elem[1] );
@@ -115,8 +121,10 @@ public class InouTadataka implements ActionListener{
 
   private void convexHull(){
     ArrayList<Integer> q= new ArrayList<Integer>();
-    q.add(0);
+    q.add(xminID);
     for(int ii=0;ii<pos.size()/2;ii++){
+      if(ii>q.size())break;
+
       int i=q.get(ii);
       double xi=pos.get(2*i);
       double yi=pos.get(2*i+1);
@@ -125,22 +133,16 @@ public class InouTadataka implements ActionListener{
         double xj=pos.get(2*j);
         double yj=pos.get(2*j+1);
 
-        boolean jflag=true;
         for(int kk=1;kk<q.size();kk++){
           int k=q.get(kk);
           if(k==i || k==j)continue;
           double xk=pos.get(2*k);
           double yk=pos.get(2*k+1);
           double drcz=(xj-xi)*(yk-yi)-(yj-yi)*(xk-xi);//drcz= n_z * (rij x rik)_z
-          if(drcz>=0){//もしも右回りなら,そのｊは無視
-            jflag=false;
-            break;
-          }
+          if(drcz<=0)continue jLoop;//もしもjikが右回りなら,そのjは無視
         }//kk
-        if(jflag){
-          q.add(j);
-          break;
-        }
+
+        q.add(j);
       }//j
     }//ii
 
@@ -157,12 +159,13 @@ public class InouTadataka implements ActionListener{
   ArrayList<Double> outer=new ArrayList<Double>();
   private void cal(){
 
-    //convex hull
-    //convexHull();
-
-    //add simply
-    outer.clear();
-    for(int i=0;i<pos.size();i++)outer.add(pos.get(i));
+    if(cbConvexHull.isSelected()){
+      convexHull();
+    }else{
+      //add simply
+      outer.clear();
+      for(int i=0;i<pos.size();i++)outer.add(pos.get(i));
+    }
 
     //paint outer points
     myCanv.repaint();
@@ -305,7 +308,7 @@ public class InouTadataka implements ActionListener{
     myecho(String.format("(Lx, Ly) =(%.3e, %.3e)",xmax-xmin,ymax-ymin));
     myecho(String.format("  - generated mesh: %d x %d",ng,ng));
     myecho(String.format("  - unit are=%.5e (=%.3e x %.3e)",dx*dy,dx,dy));
-    //myecho(String.format("estimate area: %.5e ±%.5e",dx*dy*inc,dx*dy));
+    if(cbConvexHull.isSelected())myecho("Used Convex-Hull");
     myecho(String.format("estimate area: %.5e",dx*dy*inc));
   }
 
@@ -340,6 +343,9 @@ public class InouTadataka implements ActionListener{
     calButton.addActionListener( this );
     calButton.setFocusable(false);
 
+    cbConvexHull =new JCheckBox("ConvexHull?",false);
+    cbConvexHull.setFocusable(false);
+
     JLabel lgrid = new JLabel( "Grid Num." );
     spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 100));
     spGrid.setFocusable(false);
@@ -368,13 +374,17 @@ public class InouTadataka implements ActionListener{
 
     layout.putConstraint( SpringLayout.NORTH,openButton, 5,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.WEST,openButton, 5,SpringLayout.EAST, logo);
-    layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, openButton);
-    layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, openButton);
 
-    layout.putConstraint( SpringLayout.NORTH,lgrid, 5,SpringLayout.NORTH, calButton);
-    layout.putConstraint( SpringLayout.WEST,lgrid, 5,SpringLayout.EAST, calButton);
+    layout.putConstraint( SpringLayout.NORTH,lgrid, 5,SpringLayout.NORTH, openButton);
+    layout.putConstraint( SpringLayout.WEST,lgrid, 5,SpringLayout.EAST, openButton);
     layout.putConstraint( SpringLayout.NORTH,spGrid, 5,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.WEST,spGrid, 2,SpringLayout.EAST, lgrid);
+
+    layout.putConstraint( SpringLayout.NORTH,cbConvexHull, 0,SpringLayout.NORTH, spGrid);
+    layout.putConstraint( SpringLayout.WEST,cbConvexHull, 5,SpringLayout.EAST, spGrid);
+
+    layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, cbConvexHull);
+    layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, cbConvexHull);
 
 
     layout.putConstraint( SpringLayout.NORTH,sp, 0,SpringLayout.SOUTH, openButton);
@@ -383,12 +393,11 @@ public class InouTadataka implements ActionListener{
     layout.putConstraint( SpringLayout.WEST,myCanv, 5,SpringLayout.WEST, jp);
 
 
-
     JLabel nkmr=new JLabel("Made by nkmrtkhd");
     layout.putConstraint( SpringLayout.NORTH,nkmr, 0,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.EAST,nkmr, -5,SpringLayout.EAST, jp);
 
-
+    jp.add(cbConvexHull);
     jp.add(logo);
     jp.add(nkmr);
     jp.add(openButton);
@@ -433,8 +442,8 @@ public class InouTadataka implements ActionListener{
         }
       }
 
-      g.setColor(Color.blue);
-      int r=2;
+      g.setColor(Color.black);
+      int r=5;
       double dy=(ymax-ymin);
       double dx=(xmax-xmin);
       for(int i=0;i<outer.size()/2-1;i++){
@@ -443,7 +452,13 @@ public class InouTadataka implements ActionListener{
         int x1=(int)((outer.get(2*i+2)-xmin)*width/dx)+10;
         int y1=h-(int)((outer.get(2*i+3)-ymin)*height/dy)-10;
         g.drawLine(x,y,x1,y1);
-    }
+      }
+      g.setColor(Color.blue);
+      for(int i=0;i<outer.size()/2;i++){
+        int x=(int)((outer.get(2*i)-xmin)*width/dx)+10;
+        int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-10;
+        g.fill3DRect(x-r/2,y-r/2,r,r,false);
+      }
 
     }//paint
   }//end of mycanvas
