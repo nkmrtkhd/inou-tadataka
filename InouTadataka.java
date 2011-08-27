@@ -18,7 +18,9 @@ public class InouTadataka implements ActionListener{
   private JButton openButton;
   private JButton calButton;
   private JCheckBox cbConvexHull;
+  private JCheckBox cbSort;
 
+  ArrayList<Double> posIn= new ArrayList<Double>();
   ArrayList<Double> pos= new ArrayList<Double>();
   double xmin,xmax,ymin,ymax;
   int xminID=0;
@@ -66,7 +68,7 @@ public class InouTadataka implements ActionListener{
         filename = new String( file.getAbsolutePath() );
       }
     }
-    pos.clear();
+    posIn.clear();
     //load image file
     try{
       FileReader fr = new FileReader( filename );
@@ -90,7 +92,7 @@ public class InouTadataka implements ActionListener{
         //x
         epnum.setString( elem[0] );
         tmp=epnum.getNumber();
-        pos.add(tmp);
+        posIn.add(tmp);
         inc++;
         if(tmp<xmin){
           xmin=tmp;
@@ -100,7 +102,7 @@ public class InouTadataka implements ActionListener{
         //y
         epnum.setString( elem[1] );
         tmp=epnum.getNumber();
-        pos.add(tmp);
+        posIn.add(tmp);
         if(tmp<ymin)ymin=tmp;
         if(tmp>ymax)ymax=tmp;
       }
@@ -110,7 +112,6 @@ public class InouTadataka implements ActionListener{
       myecho(String.format("Loaded file: %s",filename));
       myecho(String.format("(xmin, xmax)= (%.5e, %.5e)",xmin,xmax));
       myecho(String.format("(ymin, ymax)= (%.5e, %.5e)",ymin,ymax));
-
       outer.clear();
     }catch (Exception e) {
     }
@@ -122,10 +123,54 @@ public class InouTadataka implements ActionListener{
     outArea.setCaretPosition(outArea.getText().length());
   }
 
+  private ArrayList<Double> counterClockWiseSort(  ArrayList<Double> tmpPos ){
+    double xg=0;
+    double yg=0;
+    for(int i=0;i<tmpPos.size()/2;i++){
+      xg+=tmpPos.get(2*i);
+      yg+=tmpPos.get(2*i+1);
+    }
+    xg/=tmpPos.size();
+    yg/=tmpPos.size();
+
+    LinkedList<Polar> queue= new LinkedList<Polar>();
+    iLoop:for(int i=0;i<tmpPos.size()/2;i++){
+      double theta=Math.atan2(tmpPos.get(2*i)-xg,tmpPos.get(2*i+1)-yg);
+
+      for(int j=0;j<queue.size();j++){
+        if(queue.get(j).theta<theta){
+          queue.add(j,new Polar(i,theta));
+          continue iLoop;
+        }
+      }//j
+      queue.addLast(new Polar(i,theta));
+    }//i
+
+    ArrayList<Double> sorted= new ArrayList<Double>();
+
+    double tmp=0;
+    for(int ii=0;ii<queue.size();ii++){
+      int i=queue.get(ii).id;
+      if(tmpPos.get(2*i)<tmp){
+        tmp=tmpPos.get(2*i);
+        xminID=ii;
+      }
+      sorted.add( tmpPos.get(2*i)   );
+      sorted.add( tmpPos.get(2*i+1) );
+    }
+    return sorted;
+  }
+  private class Polar{
+    public int id;
+    public double theta;
+    public Polar(int id, double theta){
+      this.id=id;
+      this.theta=theta;
+    }
+  }
   private void convexHull(){
     ArrayList<Integer> q= new ArrayList<Integer>();
     q.add(xminID);
-
     for(int ii=0;ii<pos.size()/2;ii++){
       if(ii>=q.size())break;
       int i=q.get(ii);
@@ -165,6 +210,21 @@ public class InouTadataka implements ActionListener{
 
   ArrayList<Double> outer=new ArrayList<Double>();
   private void cal(){
+
+    pos.clear();
+    if(cbSort.isSelected()){
+      pos=counterClockWiseSort(posIn);
+    }else{
+      double tmp=0;
+      for(int i=0;i<posIn.size()/2;i++){
+        if(posIn.get(2*i)<tmp){
+          tmp=posIn.get(2*i);
+          xminID=i;
+        }
+        pos.add(posIn.get(2*i));
+        pos.add(posIn.get(2*i+1));
+      }
+    }
 
     if(cbConvexHull.isSelected()){
       convexHull();
@@ -360,6 +420,10 @@ public class InouTadataka implements ActionListener{
     cbConvexHull =new JCheckBox("Use convex-hull",false);
     cbConvexHull.setFocusable(false);
 
+    cbSort =new JCheckBox("sort data",false);
+    cbSort.setFocusable(false);
+
+
     JLabel lgrid = new JLabel( "Grid Num." );
     spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 500));
     spGrid.setFocusable(false);
@@ -382,6 +446,7 @@ public class InouTadataka implements ActionListener{
     SpringLayout layout = new SpringLayout();
     jp.setLayout(layout);
 
+
     layout.putConstraint( SpringLayout.NORTH,openButton, 5,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.WEST,openButton, 5,SpringLayout.WEST,jp);
 
@@ -390,14 +455,18 @@ public class InouTadataka implements ActionListener{
     layout.putConstraint( SpringLayout.NORTH,spGrid, 5,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.WEST,spGrid, 2,SpringLayout.EAST, lgrid);
 
-    layout.putConstraint( SpringLayout.NORTH,cbConvexHull, 0,SpringLayout.NORTH, spGrid);
-    layout.putConstraint( SpringLayout.WEST,cbConvexHull, 5,SpringLayout.EAST, spGrid);
+    layout.putConstraint( SpringLayout.NORTH,cbSort, 0,SpringLayout.NORTH, spGrid);
+    layout.putConstraint( SpringLayout.WEST,cbSort, 5,SpringLayout.EAST, spGrid);
 
-    layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, cbConvexHull);
+    layout.putConstraint( SpringLayout.NORTH,cbConvexHull, 0,SpringLayout.SOUTH, cbSort);
+    layout.putConstraint( SpringLayout.WEST,cbConvexHull,0,SpringLayout.WEST,cbSort);
+
+
+    layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, cbSort);
     layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, cbConvexHull);
 
 
-    layout.putConstraint( SpringLayout.NORTH,sp, 0,SpringLayout.SOUTH, openButton);
+    layout.putConstraint( SpringLayout.NORTH,sp, 0,SpringLayout.SOUTH, cbConvexHull);
     layout.putConstraint( SpringLayout.WEST,sp, 5,SpringLayout.WEST, jp);
     layout.putConstraint( SpringLayout.NORTH,myCanv, 0,SpringLayout.SOUTH, sp);
     layout.putConstraint( SpringLayout.WEST,myCanv, 5,SpringLayout.WEST, jp);
@@ -407,6 +476,7 @@ public class InouTadataka implements ActionListener{
     layout.putConstraint( SpringLayout.NORTH,nkmr, 0,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.EAST,nkmr, -5,SpringLayout.EAST, jp);
 
+    jp.add(cbSort);
     jp.add(cbConvexHull);
     jp.add(nkmr);
     jp.add(openButton);
@@ -464,12 +534,12 @@ public class InouTadataka implements ActionListener{
       double dx=(xmax-xmin);
 
       //draw data points
-      if(pos.size()!=0){
+      if(posIn.size()!=0){
         g.setColor(Color.red);
         int r=3;
-        for(int i=0;i<pos.size()/2;i++){
-          int x=(int)((pos.get(2*i)-xmin)*width/dx)+10;
-          int y=h-(int)((pos.get(2*i+1)-ymin)*height/dy)-10;
+        for(int i=0;i<posIn.size()/2;i++){
+          int x=(int)((posIn.get(2*i)-xmin)*width/dx)+10;
+          int y=h-(int)((posIn.get(2*i+1)-ymin)*height/dy)-10;
           g.fill3DRect(x-r/2,y-r/2,r,r,false);
         }
       }
