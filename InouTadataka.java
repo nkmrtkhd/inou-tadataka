@@ -400,7 +400,7 @@ public class InouTadataka implements ActionListener{
     ctrlJframe.setIconImage(icon.getImage());
     //window size
     Dimension screenDim = Toolkit.getDefaultToolkit().getScreenSize();
-    ctrlJframe.setBounds( 0, 0,600,800);
+    ctrlJframe.setBounds( 0, 0,1100,600);
     //how to action, when close
     ctrlJframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -436,7 +436,7 @@ public class InouTadataka implements ActionListener{
     JScrollPane sp = new JScrollPane(outArea,
                                      ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
                                      ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-    sp.setPreferredSize(new Dimension(600, 300));
+    sp.setPreferredSize(new Dimension(400, 300));
 
     myCanv=new MyCanvas();
     myCanv.setPreferredSize(new Dimension(400, 400));
@@ -467,9 +467,13 @@ public class InouTadataka implements ActionListener{
 
 
     layout.putConstraint( SpringLayout.NORTH,sp, 0,SpringLayout.SOUTH, cbConvexHull);
+    layout.putConstraint( SpringLayout.SOUTH,sp, -5,SpringLayout.SOUTH, jp);
     layout.putConstraint( SpringLayout.WEST,sp, 5,SpringLayout.WEST, jp);
-    layout.putConstraint( SpringLayout.NORTH,myCanv, 0,SpringLayout.SOUTH, sp);
-    layout.putConstraint( SpringLayout.WEST,myCanv, 5,SpringLayout.WEST, jp);
+
+    layout.putConstraint( SpringLayout.NORTH,myCanv, 0,SpringLayout.NORTH, sp);
+    layout.putConstraint( SpringLayout.SOUTH,myCanv, -5,SpringLayout.SOUTH, jp);
+    layout.putConstraint( SpringLayout.WEST,myCanv, 5,SpringLayout.EAST, sp);
+    layout.putConstraint( SpringLayout.EAST,myCanv, -5,SpringLayout.EAST, jp);
 
 
     JLabel nkmr=new JLabel("Made by nkmrtkhd");
@@ -521,6 +525,10 @@ public class InouTadataka implements ActionListener{
       int w=getWidth();
       int h=getHeight();
 
+      int spc=10;
+      if(w<h) spc=w/20;
+      else  spc=h/20;
+
       int width=w*9/10;
       int height=h*9/10;
 
@@ -529,38 +537,55 @@ public class InouTadataka implements ActionListener{
       g.setColor(new Color(200,200,255));
       g.fill3DRect(0,0,w,h,false);
 
+      g.setColor(new Color(255,255,255));
+      g.fill3DRect(spc,spc,w-spc*2,h-spc*2,false);
+
 
       double dy=(ymax-ymin);
       double dx=(xmax-xmin);
+
+
+      g2.setStroke(new BasicStroke(1f)); //線の種類を設定
+      //axis
+      g.setColor(Color.black);
+      g.drawLine(w/2,spc,w/2,h-spc);
+      g.drawLine(spc,h/2,w-spc,h/2);
 
       //draw data points
       if(posIn.size()!=0){
         g.setColor(Color.red);
         int r=3;
         for(int i=0;i<posIn.size()/2;i++){
-          int x=(int)((posIn.get(2*i)-xmin)*width/dx)+10;
-          int y=h-(int)((posIn.get(2*i+1)-ymin)*height/dy)-10;
+          int x=spc+(int)((posIn.get(2*i)-xmin)/dx*width);
+          int y=h-spc-(int)((posIn.get(2*i+1)-ymin)/dy*height);
           g.fill3DRect(x-r/2,y-r/2,r,r,false);
         }
       }
       //draw outer line
-      g.setColor(Color.black);
-      g2.setStroke(new BasicStroke(1f)); //線の種類を設定
+      g.setColor(Color.green);
       for(int i=0;i<outer.size()/2-1;i++){
-        int x=(int)((outer.get(2*i)-xmin)*width/dx)+10;
-        int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-10;
-        int x1=(int)((outer.get(2*i+2)-xmin)*width/dx)+10;
-        int y1=h-(int)((outer.get(2*i+3)-ymin)*height/dy)-10;
+        int x=(int)((outer.get(2*i)-xmin)*width/dx)+spc;
+        int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-spc;
+        int x1=(int)((outer.get(2*i+2)-xmin)*width/dx)+spc;
+        int y1=h-(int)((outer.get(2*i+3)-ymin)*height/dy)-spc;
         g.drawLine(x,y,x1,y1);
       }
       //draw outer points
       g.setColor(Color.blue);
       int r=5;
       for(int i=0;i<outer.size()/2;i++){
-        int x=(int)((outer.get(2*i)-xmin)*width/dx)+10;
-        int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-10;
+        int x=(int)((outer.get(2*i)-xmin)*width/dx)+spc;
+        int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-spc;
         g.fill3DRect(x-r/2,y-r/2,r,r,false);
       }
+
+
+      //num
+      g.setColor(Color.black);
+      g2.drawString(String.format("%.2e",xmin),spc,h/2);
+      g2.drawString(String.format("%.2e",xmax),w-70,h/2);
+      g2.drawString(String.format("%.2e",ymin),w/2,h-spc);
+      g2.drawString(String.format("%.2e",ymax),w/2,spc);
 
     }//paint
   }//end of mycanvas
