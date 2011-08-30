@@ -1,5 +1,5 @@
       program make
-c     Last modified <2011-08-26 10:23:18 by NAKAMURA Takahide>
+c     Last modified <2011-08-30 15:58:19 by NAKAMURA Takahide>
 
       implicit none
       integer i,n

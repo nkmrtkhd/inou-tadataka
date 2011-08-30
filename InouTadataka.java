@@ -19,9 +19,11 @@ public class InouTadataka implements ActionListener{
   private JButton calButton;
   private JCheckBox cbConvexHull;
   private JCheckBox cbSort;
+  private JCheckBox cbInner;
 
   ArrayList<Double> posIn= new ArrayList<Double>();
   ArrayList<Double> pos= new ArrayList<Double>();
+  ArrayList<Integer> inner= new ArrayList<Integer>();
   double xmin,xmax,ymin,ymax;
   int xminID=0;
 
@@ -350,7 +352,7 @@ public class InouTadataka implements ActionListener{
       }
     }//i
 
-    /// count innter area
+    if(cbInner.isSelected())inner.clear();
     int inc=0;
     for(int ix=0;ix<ng;ix++){
       //search y1,y2
@@ -368,6 +370,20 @@ public class InouTadataka implements ActionListener{
         myecho("Send a mail to nkmrtkhd@gmail.com");
         return;
       }
+
+      //inner area
+      if(cbInner.isSelected()){
+        int iymid=(iymax+iymin)/2;
+        //ymax down
+        for(int iy=iymax;iy>iymid;iy--)if(grid[ix][iy]==1 && iy<iymax)iymax=iy;
+        //ymin up
+        for(int iy=iymin;iy<iymid;iy++)if(grid[ix][iy]==1 && iy>iymin)iymin=iy;
+
+        inner.add(ix);
+        inner.add(iymin);
+        inner.add(iymax);
+      }//end of inner-if
+
       inc+=(iymax-iymin);
     }//ix
 
@@ -423,6 +439,9 @@ public class InouTadataka implements ActionListener{
     cbSort =new JCheckBox("sort data",false);
     cbSort.setFocusable(false);
 
+    cbInner =new JCheckBox("Inner Area",false);
+    cbInner.setFocusable(false);
+
 
     JLabel lgrid = new JLabel( "Grid Num." );
     spGrid = new JSpinner(new SpinnerNumberModel(500, 1, null, 500));
@@ -461,9 +480,11 @@ public class InouTadataka implements ActionListener{
     layout.putConstraint( SpringLayout.NORTH,cbConvexHull, 0,SpringLayout.SOUTH, cbSort);
     layout.putConstraint( SpringLayout.WEST,cbConvexHull,0,SpringLayout.WEST,cbSort);
 
+    layout.putConstraint( SpringLayout.NORTH,cbInner, 0,SpringLayout.NORTH, cbSort);
+    layout.putConstraint( SpringLayout.WEST, cbInner,0,SpringLayout.EAST,cbConvexHull);
 
-    layout.putConstraint( SpringLayout.NORTH,calButton, 0,SpringLayout.NORTH, cbSort);
-    layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, cbConvexHull);
+    layout.putConstraint( SpringLayout.NORTH,calButton, 5,SpringLayout.NORTH, jp);
+    layout.putConstraint( SpringLayout.WEST,calButton, 5,SpringLayout.EAST, cbInner);
 
 
     layout.putConstraint( SpringLayout.NORTH,sp, 0,SpringLayout.SOUTH, cbConvexHull);
@@ -480,6 +501,7 @@ public class InouTadataka implements ActionListener{
     layout.putConstraint( SpringLayout.NORTH,nkmr, 0,SpringLayout.NORTH, jp);
     layout.putConstraint( SpringLayout.EAST,nkmr, -5,SpringLayout.EAST, jp);
 
+    jp.add(cbInner);
     jp.add(cbSort);
     jp.add(cbConvexHull);
     jp.add(nkmr);
@@ -554,31 +576,44 @@ public class InouTadataka implements ActionListener{
       //draw data points
       if(posIn.size()!=0){
         g.setColor(Color.red);
-        int r=3;
+        int r=7;
         for(int i=0;i<posIn.size()/2;i++){
-          int x=spc+(int)((posIn.get(2*i)-xmin)/dx*width);
-          int y=h-spc-(int)((posIn.get(2*i+1)-ymin)/dy*height);
+          int x=  (int)((posIn.get(2*i  )-xmin)/dx*width)+spc;
+          int y=h-(int)((posIn.get(2*i+1)-ymin)/dy*height)-spc;
           g.fill3DRect(x-r/2,y-r/2,r,r,false);
         }
       }
       //draw outer line
       g.setColor(Color.green);
       for(int i=0;i<outer.size()/2-1;i++){
-        int x=(int)((outer.get(2*i)-xmin)*width/dx)+spc;
-        int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-spc;
-        int x1=(int)((outer.get(2*i+2)-xmin)*width/dx)+spc;
+        int x =  (int)((outer.get(2*i  )-xmin)*width/dx)+spc;
+        int y =h-(int)((outer.get(2*i+1)-ymin)*height/dy)-spc;
+        int x1=  (int)((outer.get(2*i+2)-xmin)*width/dx)+spc;
         int y1=h-(int)((outer.get(2*i+3)-ymin)*height/dy)-spc;
         g.drawLine(x,y,x1,y1);
       }
       //draw outer points
       g.setColor(Color.blue);
-      int r=5;
       for(int i=0;i<outer.size()/2;i++){
-        int x=(int)((outer.get(2*i)-xmin)*width/dx)+spc;
+        int r=5;
+        int x=  (int)((outer.get(2*i  )-xmin)*width/dx)+spc;
         int y=h-(int)((outer.get(2*i+1)-ymin)*height/dy)-spc;
         g.fill3DRect(x-r/2,y-r/2,r,r,false);
       }
 
+      //draw inner
+      if(cbInner.isSelected()){
+        g.setColor(Color.yellow);
+        int ng=((Integer)spGrid.getValue()).intValue();
+        for(int i=0;i<inner.size()/3;i++){
+          int r=3;
+          int x=   (int)((inner.get(3*i  ))*width/ng)+spc;
+          int y1=h-(int)((inner.get(3*i+1))*height/ng)-spc;
+          int y2=h-(int)((inner.get(3*i+2))*height/ng)-spc;
+          g.fill3DRect(x-r/2,y1-r/2,r,r,false);
+          g.fill3DRect(x-r/2,y2-r/2,r,r,false);
+        }
+      }
 
       //num
       g.setColor(Color.black);
